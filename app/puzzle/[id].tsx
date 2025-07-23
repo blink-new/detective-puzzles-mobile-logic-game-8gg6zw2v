@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, StatusBar, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, StatusBar, Alert, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, useLocalSearchParams } from 'expo-router';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
@@ -73,9 +73,9 @@ export default function PuzzleScreen() {
   };
 
   const getCellStyle = (value: boolean | null) => {
-    if (value === true) return 'bg-green-500/30 border-green-400';
-    if (value === false) return 'bg-red-500/30 border-red-400';
-    return 'bg-white/10 border-white/30';
+    if (value === true) return [styles.gridCell, styles.gridCellTrue];
+    if (value === false) return [styles.gridCell, styles.gridCellFalse];
+    return [styles.gridCell, styles.gridCellEmpty];
   };
 
   const checkSolution = () => {
@@ -146,33 +146,33 @@ export default function PuzzleScreen() {
 
   if (!currentCase) {
     return (
-      <LinearGradient colors={['#0f0f23', '#1a1a2e']} className="flex-1 items-center justify-center">
-        <Text className="text-white text-lg">Loading case...</Text>
+      <LinearGradient colors={['#0f0f23', '#1a1a2e']} style={styles.loadingContainer}>
+        <Text style={styles.loadingText}>Loading case...</Text>
       </LinearGradient>
     );
   }
 
   if (showStory) {
     return (
-      <LinearGradient colors={['#0f0f23', '#1a1a2e', '#16213e']} className="flex-1">
+      <LinearGradient colors={['#0f0f23', '#1a1a2e', '#16213e']} style={styles.container}>
         <StatusBar barStyle="light-content" />
         
-        <ScrollView className="flex-1 px-6">
-          <Animated.View entering={FadeInUp.duration(600)} className="pt-16 pb-8">
-            <Text className="text-3xl font-bold text-white text-center mb-4">
+        <ScrollView style={styles.storyContainer}>
+          <Animated.View entering={FadeInUp.duration(600)} style={styles.storyContent}>
+            <Text style={styles.storyTitle}>
               {currentCase.title}
             </Text>
-            <Text className="text-lg text-gray-300 text-center leading-6">
+            <Text style={styles.storyText}>
               {currentCase.story}
             </Text>
           </Animated.View>
 
-          <Animated.View entering={FadeInDown.duration(600).delay(300)} className="mb-8">
+          <Animated.View entering={FadeInDown.duration(600).delay(300)} style={styles.storyButtonContainer}>
             <TouchableOpacity
               onPress={() => setShowStory(false)}
-              className="bg-blue-500 rounded-2xl py-4 px-8 mx-8"
+              style={styles.startButton}
             >
-              <Text className="text-white text-lg font-semibold text-center">
+              <Text style={styles.startButtonText}>
                 Start Investigation
               </Text>
             </TouchableOpacity>
@@ -183,56 +183,59 @@ export default function PuzzleScreen() {
   }
 
   return (
-    <LinearGradient colors={['#0f0f23', '#1a1a2e']} className="flex-1">
+    <LinearGradient colors={['#0f0f23', '#1a1a2e']} style={styles.container}>
       <StatusBar barStyle="light-content" />
       
       {/* Header */}
       <Animated.View 
         entering={FadeInUp.duration(600)}
-        className="pt-16 pb-4 px-4 flex-row items-center justify-between"
+        style={styles.header}
       >
         <TouchableOpacity
           onPress={() => router.back()}
-          className="p-2 rounded-full bg-white/10"
+          style={styles.backButton}
         >
           <ArrowLeft size={20} color="white" />
         </TouchableOpacity>
         
-        <Text className="text-lg font-bold text-white flex-1 text-center">
+        <Text style={styles.headerTitle}>
           {currentCase.title}
         </Text>
 
-        <View className="flex-row items-center space-x-2">
+        <View style={styles.hintContainer}>
           <TouchableOpacity
             onPress={useHint}
             disabled={gameState.hintsUsed >= currentCase.maxHints}
-            className={`p-2 rounded-full ${gameState.hintsUsed >= currentCase.maxHints ? 'bg-gray-600' : 'bg-yellow-500'}`}
+            style={[
+              styles.hintButton,
+              gameState.hintsUsed >= currentCase.maxHints ? styles.hintButtonDisabled : styles.hintButtonActive
+            ]}
           >
             <Lightbulb size={20} color="white" />
           </TouchableOpacity>
-          <Text className="text-white text-sm">
+          <Text style={styles.hintText}>
             {currentCase.maxHints - gameState.hintsUsed}
           </Text>
         </View>
       </Animated.View>
 
-      <ScrollView className="flex-1" horizontal showsHorizontalScrollIndicator={false}>
-        <View className="flex-1 flex-row">
+      <ScrollView style={styles.gameContainer} horizontal showsHorizontalScrollIndicator={false}>
+        <View style={styles.gameContent}>
           {/* Logic Grid */}
-          <Animated.View entering={FadeInDown.duration(600).delay(200)} className="p-4">
-            <View className="bg-white/10 rounded-2xl p-4 border border-white/20">
+          <Animated.View entering={FadeInDown.duration(600).delay(200)} style={styles.gridContainer}>
+            <View style={styles.gridWrapper}>
               {/* Grid Header */}
-              <View className="flex-row mb-2">
-                <View className="w-24" />
+              <View style={styles.gridHeader}>
+                <View style={styles.gridHeaderSpacer} />
                 {currentCase.categories.slice(1).map(category => (
-                  <View key={category.id} className="mx-1">
-                    <Text className="text-white text-xs font-semibold text-center mb-2">
+                  <View key={category.id} style={styles.categoryHeader}>
+                    <Text style={styles.categoryTitle}>
                       {category.name}
                     </Text>
-                    <View className="flex-row">
+                    <View style={styles.itemsHeader}>
                       {category.items.map(item => (
-                        <View key={item} className="w-12 mx-0.5">
-                          <Text className="text-white text-xs text-center transform -rotate-45 h-8">
+                        <View key={item} style={styles.itemHeader}>
+                          <Text style={styles.itemHeaderText}>
                             {item.length > 6 ? item.substring(0, 6) + '...' : item}
                           </Text>
                         </View>
@@ -244,22 +247,22 @@ export default function PuzzleScreen() {
 
               {/* Grid Rows */}
               {currentCase.categories[0].items.map(suspect => (
-                <View key={suspect} className="flex-row items-center mb-1">
-                  <View className="w-24">
-                    <Text className="text-white text-sm font-medium">
+                <View key={suspect} style={styles.gridRow}>
+                  <View style={styles.suspectLabel}>
+                    <Text style={styles.suspectText}>
                       {suspect}
                     </Text>
                   </View>
                   
                   {currentCase.categories.slice(1).map(category => (
-                    <View key={category.id} className="flex-row mx-1">
+                    <View key={category.id} style={styles.categoryRow}>
                       {category.items.map(item => (
                         <TouchableOpacity
                           key={item}
                           onPress={() => toggleCell(suspect, item)}
-                          className={`w-12 h-12 mx-0.5 rounded-lg border-2 items-center justify-center ${getCellStyle(gameState.grid[suspect]?.[item])}`}
+                          style={getCellStyle(gameState.grid[suspect]?.[item])}
                         >
-                          <Text className="text-white text-lg font-bold">
+                          <Text style={styles.cellText}>
                             {getCellDisplay(gameState.grid[suspect]?.[item])}
                           </Text>
                         </TouchableOpacity>
@@ -272,13 +275,13 @@ export default function PuzzleScreen() {
           </Animated.View>
 
           {/* Clues Panel */}
-          <Animated.View entering={FadeInDown.duration(600).delay(400)} className="w-80 p-4">
-            <View className="bg-white/10 rounded-2xl p-4 border border-white/20">
-              <Text className="text-white text-lg font-bold mb-4">Clues</Text>
+          <Animated.View entering={FadeInDown.duration(600).delay(400)} style={styles.cluesContainer}>
+            <View style={styles.cluesWrapper}>
+              <Text style={styles.cluesTitle}>Clues</Text>
               <ScrollView showsVerticalScrollIndicator={false}>
                 {currentCase.clues.map((clue, index) => (
-                  <View key={clue.id} className="mb-3 p-3 bg-white/5 rounded-lg">
-                    <Text className="text-gray-300 text-sm leading-5">
+                  <View key={clue.id} style={styles.clueItem}>
+                    <Text style={styles.clueText}>
                       {index + 1}. {clue.text}
                     </Text>
                   </View>
@@ -292,14 +295,14 @@ export default function PuzzleScreen() {
       {/* Bottom Actions */}
       <Animated.View 
         entering={FadeInUp.duration(600).delay(600)}
-        className="p-4 bg-black/30"
+        style={styles.bottomActions}
       >
         <TouchableOpacity
           onPress={checkSolution}
-          className="bg-green-500 rounded-2xl py-4 px-8 flex-row items-center justify-center"
+          style={styles.checkButton}
         >
           <CheckCircle size={24} color="white" />
-          <Text className="text-white text-lg font-semibold ml-2">
+          <Text style={styles.checkButtonText}>
             Check Solution
           </Text>
         </TouchableOpacity>
@@ -307,3 +310,233 @@ export default function PuzzleScreen() {
     </LinearGradient>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  loadingContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  loadingText: {
+    color: 'white',
+    fontSize: 18,
+  },
+  storyContainer: {
+    flex: 1,
+    paddingHorizontal: 24,
+  },
+  storyContent: {
+    paddingTop: 64,
+    paddingBottom: 32,
+  },
+  storyTitle: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: 'white',
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  storyText: {
+    fontSize: 18,
+    color: '#D1D5DB',
+    textAlign: 'center',
+    lineHeight: 24,
+  },
+  storyButtonContainer: {
+    marginBottom: 32,
+  },
+  startButton: {
+    backgroundColor: '#3B82F6',
+    borderRadius: 16,
+    paddingVertical: 16,
+    paddingHorizontal: 32,
+    marginHorizontal: 32,
+  },
+  startButtonText: {
+    color: 'white',
+    fontSize: 18,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  header: {
+    paddingTop: 64,
+    paddingBottom: 16,
+    paddingHorizontal: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  backButton: {
+    padding: 8,
+    borderRadius: 50,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: 'white',
+    flex: 1,
+    textAlign: 'center',
+  },
+  hintContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  hintButton: {
+    padding: 8,
+    borderRadius: 50,
+  },
+  hintButtonActive: {
+    backgroundColor: '#EAB308',
+  },
+  hintButtonDisabled: {
+    backgroundColor: '#6B7280',
+  },
+  hintText: {
+    color: 'white',
+    fontSize: 14,
+    marginLeft: 8,
+  },
+  gameContainer: {
+    flex: 1,
+  },
+  gameContent: {
+    flex: 1,
+    flexDirection: 'row',
+  },
+  gridContainer: {
+    padding: 16,
+  },
+  gridWrapper: {
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+  },
+  gridHeader: {
+    flexDirection: 'row',
+    marginBottom: 8,
+  },
+  gridHeaderSpacer: {
+    width: 96,
+  },
+  categoryHeader: {
+    marginHorizontal: 4,
+  },
+  categoryTitle: {
+    color: 'white',
+    fontSize: 12,
+    fontWeight: '600',
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  itemsHeader: {
+    flexDirection: 'row',
+  },
+  itemHeader: {
+    width: 48,
+    marginHorizontal: 2,
+  },
+  itemHeaderText: {
+    color: 'white',
+    fontSize: 10,
+    textAlign: 'center',
+    height: 32,
+    transform: [{ rotate: '-45deg' }],
+  },
+  gridRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  suspectLabel: {
+    width: 96,
+  },
+  suspectText: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  categoryRow: {
+    flexDirection: 'row',
+    marginHorizontal: 4,
+  },
+  gridCell: {
+    width: 48,
+    height: 48,
+    marginHorizontal: 2,
+    borderRadius: 8,
+    borderWidth: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  gridCellEmpty: {
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+  },
+  gridCellTrue: {
+    backgroundColor: 'rgba(34, 197, 94, 0.3)',
+    borderColor: '#22C55E',
+  },
+  gridCellFalse: {
+    backgroundColor: 'rgba(239, 68, 68, 0.3)',
+    borderColor: '#EF4444',
+  },
+  cellText: {
+    color: 'white',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  cluesContainer: {
+    width: 320,
+    padding: 16,
+  },
+  cluesWrapper: {
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+    height: 400,
+  },
+  cluesTitle: {
+    color: 'white',
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 16,
+  },
+  clueItem: {
+    marginBottom: 12,
+    padding: 12,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: 8,
+  },
+  clueText: {
+    color: '#D1D5DB',
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  bottomActions: {
+    padding: 16,
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+  },
+  checkButton: {
+    backgroundColor: '#22C55E',
+    borderRadius: 16,
+    paddingVertical: 16,
+    paddingHorizontal: 32,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  checkButtonText: {
+    color: 'white',
+    fontSize: 18,
+    fontWeight: '600',
+    marginLeft: 8,
+  },
+});
